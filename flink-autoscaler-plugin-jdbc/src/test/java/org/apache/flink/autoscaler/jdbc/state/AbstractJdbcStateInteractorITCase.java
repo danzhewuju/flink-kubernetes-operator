@@ -47,9 +47,8 @@ abstract class AbstractJdbcStateInteractorITCase implements DatabaseTest {
 
             // Test for creating data.
             jdbcStateInteractor.createData(
-                    jobKey,
-                    List.of(COLLECTED_METRICS, SCALING_HISTORY),
-                    Map.of(COLLECTED_METRICS, value1, SCALING_HISTORY, value2));
+                    jobKey, ,
+                    List.of(COLLECTED_METRICS, SCALING_HISTORY), Map.of(COLLECTED_METRICS, value1, SCALING_HISTORY, value2));
             assertThat(jdbcStateInteractor.queryData(jobKey))
                     .isEqualTo(Map.of(COLLECTED_METRICS, value1, SCALING_HISTORY, value2));
 

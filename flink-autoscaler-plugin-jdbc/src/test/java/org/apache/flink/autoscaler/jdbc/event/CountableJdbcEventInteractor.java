@@ -53,13 +53,14 @@ class CountableJdbcEventInteractor extends JdbcEventInteractor {
     @Override
     public void createEvent(
             String jobKey,
+            String jobName,
             String reason,
             AutoScalerEventHandler.Type type,
             String message,
             String eventKey)
             throws Exception {
         createCounter.incrementAndGet();
-        super.createEvent(jobKey, reason, type, message, eventKey);
+        super.createEvent(jobKey, jobName, reason, type, message, eventKey);
     }
 
     @Override

@@ -50,7 +50,7 @@ abstract class AbstractJdbcEventInteractorITCase implements DatabaseTest {
             jdbcEventInteractor.setClock(Clock.fixed(createTime, ZoneId.systemDefault()));
 
             jdbcEventInteractor.createEvent(
-                    jobKey, reason, AutoScalerEventHandler.Type.Normal, message, eventKey);
+                    jobKey, null, reason, AutoScalerEventHandler.Type.Normal, message, eventKey);
             var firstEventOptional = jdbcEventInteractor.queryLatestEvent(jobKey, reason, eventKey);
             assertThat(firstEventOptional).isPresent();
             assertEvent(
@@ -67,7 +67,7 @@ abstract class AbstractJdbcEventInteractorITCase implements DatabaseTest {
             var secondCreateTime = createTime.plusSeconds(5);
             jdbcEventInteractor.setClock(Clock.fixed(secondCreateTime, ZoneId.systemDefault()));
             jdbcEventInteractor.createEvent(
-                    jobKey, reason, AutoScalerEventHandler.Type.Normal, message + 2, eventKey);
+                    jobKey, null, reason, AutoScalerEventHandler.Type.Normal, message + 2, eventKey);
             // The latest event should be the second event.
             var secondEventOptional =
                     jdbcEventInteractor.queryLatestEvent(jobKey, reason, eventKey);

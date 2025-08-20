@@ -351,7 +351,7 @@ public class AutoScalerOptions {
     public static final ConfigOption<Duration> FLINK_CLIENT_TIMEOUT =
             autoScalerConfig("flink.rest-client.timeout")
                     .durationType()
-                    .defaultValue(Duration.ofSeconds(100))
+                    .defaultValue(Duration.ofSeconds(10))
                     .withFallbackKeys(oldOperatorConfigKey("flink.rest-client.timeout"))
                     .withDescription("The timeout for waiting the flink rest client to return.");
 

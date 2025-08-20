@@ -40,6 +40,14 @@ public class JdbcStateStore implements AutoCloseable {
         getJobStateView(jobKey).put(stateType, value);
     }
 
+    protected void putSerializedState(String jobKey, String jobName ,StateType stateType, String value) {
+        JobStateView jobStateView = getJobStateView(jobKey);
+        if (jobStateView.getJobName() == null) {
+            jobStateView.setJobName(jobName);
+        }
+        jobStateView.put(stateType, value);
+    }
+
     protected Optional<String> getSerializedState(String jobKey, StateType stateType) {
         return Optional.ofNullable(getJobStateView(jobKey).get(stateType));
     }

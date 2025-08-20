@@ -55,10 +55,10 @@ public class CountableJdbcStateInteractor extends JdbcStateInteractor {
 
     @Override
     public void createData(
-            String jobKey, List<StateType> createdStateTypes, Map<StateType, String> data)
+            String jobKey, String jobName, List<StateType> createdStateTypes, Map<StateType, String> data)
             throws Exception {
         createCounter.incrementAndGet();
-        super.createData(jobKey, createdStateTypes, data);
+        super.createData(jobKey, jobName, createdStateTypes, data);
     }
 
     @Override

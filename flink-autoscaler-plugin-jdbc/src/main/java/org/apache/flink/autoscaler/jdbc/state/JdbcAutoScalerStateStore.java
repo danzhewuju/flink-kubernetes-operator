@@ -84,6 +84,7 @@ public class JdbcAutoScalerStateStore<KEY, Context extends JobAutoScalerContext<
             throws Exception {
         jdbcStateStore.putSerializedState(
                 getSerializeKey(jobContext),
+                jobContext.getJobName(),
                 SCALING_HISTORY,
                 serializeScalingHistory(scalingHistory));
     }
@@ -118,6 +119,7 @@ public class JdbcAutoScalerStateStore<KEY, Context extends JobAutoScalerContext<
             throws Exception {
         jdbcStateStore.putSerializedState(
                 getSerializeKey(jobContext),
+                jobContext.getJobName(),
                 SCALING_TRACKING,
                 serializeScalingTracking(scalingTrack));
     }
@@ -144,7 +146,7 @@ public class JdbcAutoScalerStateStore<KEY, Context extends JobAutoScalerContext<
     public void storeCollectedMetrics(
             Context jobContext, SortedMap<Instant, CollectedMetrics> metrics) throws Exception {
         jdbcStateStore.putSerializedState(
-                getSerializeKey(jobContext), COLLECTED_METRICS, serializeEvaluatedMetrics(metrics));
+                getSerializeKey(jobContext), jobContext.getJobName() ,COLLECTED_METRICS, serializeEvaluatedMetrics(metrics));
     }
 
     @Nonnull
@@ -176,6 +178,7 @@ public class JdbcAutoScalerStateStore<KEY, Context extends JobAutoScalerContext<
             Context jobContext, Map<String, String> parallelismOverrides) {
         jdbcStateStore.putSerializedState(
                 getSerializeKey(jobContext),
+                jobContext.getJobName(),
                 PARALLELISM_OVERRIDES,
                 serializeParallelismOverrides(parallelismOverrides));
     }
@@ -198,6 +201,7 @@ public class JdbcAutoScalerStateStore<KEY, Context extends JobAutoScalerContext<
     public void storeConfigChanges(Context jobContext, ConfigChanges configChanges) {
         jdbcStateStore.putSerializedState(
                 getSerializeKey(jobContext),
+                jobContext.getJobName(),
                 CONFIG_OVERRIDES,
                 serializeConfigOverrides(configChanges));
     }
@@ -221,6 +225,7 @@ public class JdbcAutoScalerStateStore<KEY, Context extends JobAutoScalerContext<
             throws Exception {
         jdbcStateStore.putSerializedState(
                 getSerializeKey(jobContext),
+                jobContext.getJobName(),
                 DELAYED_SCALE_DOWN,
                 serializeDelayedScaleDown(delayedScaleDown));
     }

@@ -78,24 +78,25 @@ public class JdbcStateInteractor implements AutoCloseable {
     }
 
     public void createData(
-            String jobKey, List<StateType> createdStateTypes, Map<StateType, String> data)
+            String jobKey, String jobName, List<StateType> createdStateTypes, Map<StateType, String> data)
             throws Exception {
         var query =
-                "INSERT INTO t_flink_autoscaler_state_store (update_time, job_key, state_type, state_value) values (?, ?, ?, ?)";
+                "INSERT INTO t_flink_autoscaler_state_store (update_time, job_key, job_name, state_type, state_value) values (?, ?, ?, ?, ?)";
         var updateTime = Timestamp.from(Instant.now());
         try (var conn = dataSource.getConnection();
                 var pstmt = conn.prepareStatement(query)) {
             for (var stateType : createdStateTypes) {
                 pstmt.setTimestamp(1, updateTime);
                 pstmt.setString(2, jobKey);
-                pstmt.setString(3, stateType.getIdentifier());
+                pstmt.setString(3, jobName);
+                pstmt.setString(4, stateType.getIdentifier());
 
                 String stateValue = data.get(stateType);
                 checkState(
                         stateValue != null,
                         "The state value shouldn't be null during inserting. "
                                 + "It may be a bug, please raise a JIRA to Flink Community.");
-                pstmt.setString(4, stateValue);
+                pstmt.setString(5, stateValue);
                 pstmt.addBatch();
             }
             pstmt.executeBatch();

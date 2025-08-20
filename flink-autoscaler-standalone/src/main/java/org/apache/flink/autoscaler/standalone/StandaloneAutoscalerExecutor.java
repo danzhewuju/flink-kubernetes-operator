@@ -34,7 +34,6 @@ import javax.annotation.Nonnull;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -134,17 +133,17 @@ public class StandaloneAutoscalerExecutor<KEY, Context extends JobAutoScalerCont
     protected List<CompletableFuture<Void>> scaling() {
         LOG.info("Standalone autoscaler starts scaling. scaling job nums: {}", jobListFetchers.size());
         Collection<Context> jobList = new ArrayList<>();
-        try {
-            for (JobListFetcher<KEY, Context> jobListFetcher : jobListFetchers) {
+        for (var i = 0; i < jobListFetchers.size(); i++) {
+            var jobListFetcher = jobListFetchers.get(i);
+            try {
                 if (jobListFetcher == null) {
                     LOG.warn("JobListFetcher is null, skipping this fetcher.");
                     continue;
                 }
-                jobList.addAll(jobListFetcher.fetch(baseConfigs.get(jobListFetchers.indexOf(jobListFetcher))));
+                jobList.addAll(jobListFetcher.fetch(baseConfigs.get(i)));
+            } catch (Throwable e) {
+                LOG.error("Error while fetch job list.", e);
             }
-        } catch (Throwable e) {
-            LOG.error("Error while fetch job list.", e);
-            return Collections.emptyList();
         }
 
         cleanupStoppedJob(jobList);
@@ -202,7 +201,7 @@ public class StandaloneAutoscalerExecutor<KEY, Context extends JobAutoScalerCont
     @VisibleForTesting
     protected void scalingSingleJob(Context jobContext) {
         try {
-            MDC.put("job.key", jobContext.getJobKey().toString());
+            MDC.put("job.key", jobContext.getJobName() + " [" + jobContext.getJobKey().toString() + "] ");
             autoScaler.scale(jobContext);
         } catch (Throwable e) {
             LOG.error("Error while scaling job", e);

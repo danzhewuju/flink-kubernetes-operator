@@ -93,7 +93,7 @@ public class JdbcAutoScalerEventHandler<KEY, Context extends JobAutoScalerContex
                                 jobKey, type, reason, messageKey != null ? messageKey : message));
         if (interval == null) {
             // Don't deduplicate when interval is null.
-            jdbcEventInteractor.createEvent(jobKey, reason, type, message, eventKey);
+            jdbcEventInteractor.createEvent(jobKey, context.getJobName(), reason, type, message, eventKey);
             return;
         }
 
@@ -106,7 +106,7 @@ public class JdbcAutoScalerEventHandler<KEY, Context extends JobAutoScalerContex
             final var oldEvent = oldEventOpt.get();
             jdbcEventInteractor.updateEvent(oldEvent.getId(), message, oldEvent.getCount() + 1);
         } else {
-            jdbcEventInteractor.createEvent(jobKey, reason, type, message, eventKey);
+            jdbcEventInteractor.createEvent(jobKey, context.getJobName(), reason, type, message, eventKey);
         }
     }
 

@@ -49,6 +49,14 @@ public class AutoscalerStandaloneOptions {
                     .defaultValue(100)
                     .withDescription("The parallelism of autoscaler standalone control loop.");
 
+    public static final ConfigOption<String> FLINK_JOB_NAME =
+            autoscalerStandaloneConfig("flink.job.name")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("The names of the Flink jobs to be auto-scaled. "
+                            + "This option is required when using the standalone autoscaler. "
+                            + "Multiple job names can be specified, separated by commas.");
+
     public static final ConfigOption<String> FETCHER_FLINK_CLUSTER_HOST =
             autoscalerStandaloneConfig("fetcher.flink-cluster.host")
                     .stringType()

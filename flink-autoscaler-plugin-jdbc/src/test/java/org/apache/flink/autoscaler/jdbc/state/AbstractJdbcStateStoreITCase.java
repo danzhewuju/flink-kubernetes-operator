@@ -181,7 +181,7 @@ abstract class AbstractJdbcStateStoreITCase implements DatabaseTest {
         // Modify the database directly.
         var tmpJdbcInteractor = new JdbcStateInteractor(dataSource);
         tmpJdbcInteractor.createData(
-                DEFAULT_JOB_KEY, List.of(COLLECTED_METRICS), Map.of(COLLECTED_METRICS, value1));
+                DEFAULT_JOB_KEY, null, List.of(COLLECTED_METRICS), Map.of(COLLECTED_METRICS, value1));
         assertThat(getValueFromDatabase(DEFAULT_JOB_KEY, COLLECTED_METRICS)).hasValue(value1);
 
         // Cache cannot read data of database.

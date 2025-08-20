@@ -89,6 +89,7 @@ public class JdbcEventInteractor implements AutoCloseable {
 
     public void createEvent(
             String jobKey,
+            String jobName,
             String reason,
             AutoScalerEventHandler.Type type,
             String message,
@@ -96,8 +97,8 @@ public class JdbcEventInteractor implements AutoCloseable {
             throws Exception {
         var query =
                 "INSERT INTO t_flink_autoscaler_event_handler ("
-                        + "create_time, update_time, job_key, reason, event_type, message, event_count, event_key)"
-                        + " values (?, ?, ?, ?, ?, ?, ?, ?)";
+                        + "create_time, update_time, job_key, job_name, reason, event_type, message, event_count, event_key)"
+                        + " values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         var createTime = Timestamp.from(clock.instant());
         try (var conn = dataSource.getConnection();
@@ -105,11 +106,12 @@ public class JdbcEventInteractor implements AutoCloseable {
             pstmt.setTimestamp(1, createTime);
             pstmt.setTimestamp(2, createTime);
             pstmt.setString(3, jobKey);
-            pstmt.setString(4, reason);
-            pstmt.setString(5, type.toString());
-            pstmt.setString(6, message);
-            pstmt.setInt(7, 1);
-            pstmt.setString(8, eventKey);
+            pstmt.setString(4, jobName);
+            pstmt.setString(5, reason);
+            pstmt.setString(6, type.toString());
+            pstmt.setString(7, message);
+            pstmt.setInt(8, 1);
+            pstmt.setString(9, eventKey);
             pstmt.executeUpdate();
         }
     }

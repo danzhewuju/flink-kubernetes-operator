@@ -19,6 +19,9 @@ package org.apache.flink.autoscaler.jdbc.state;
 
 import org.apache.flink.annotation.VisibleForTesting;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -141,6 +144,10 @@ public class JobStateView {
     private final String jobKey;
     private final Map<StateType, String> data;
 
+    @Getter
+    @Setter
+    private String jobName;
+
     /**
      * The state is maintained for each state type, which means that part of state types of current
      * job are stored in the database, but the rest of the state types may have been created in the
@@ -226,7 +233,7 @@ public class JobStateView {
             List<StateType> stateTypes = entry.getValue();
             switch (state) {
                 case NEEDS_CREATE:
-                    jdbcStateInteractor.createData(jobKey, stateTypes, data);
+                    jdbcStateInteractor.createData(jobKey, jobName, stateTypes, data);
                     break;
                 case NEEDS_DELETE:
                     jdbcStateInteractor.deleteData(jobKey, stateTypes);

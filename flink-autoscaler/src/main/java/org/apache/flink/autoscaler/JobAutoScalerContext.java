@@ -29,7 +29,6 @@ import org.apache.flink.util.function.SupplierWithException;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import javax.annotation.Nullable;
@@ -42,10 +41,11 @@ import java.util.Optional;
  * @param <KEY> The job key.
  */
 @Experimental
-@RequiredArgsConstructor
 @ToString
 @Builder(toBuilder = true)
 public class JobAutoScalerContext<KEY> {
+
+    @Nullable @Getter private String jobName;
 
     /** The identifier of each flink job. */
     @Getter private final KEY jobKey;
@@ -65,6 +65,33 @@ public class JobAutoScalerContext<KEY> {
 
     @ToString.Exclude
     private final SupplierWithException<RestClusterClient<String>, Exception> restClientSupplier;
+
+    public JobAutoScalerContext(
+            KEY jobKey,
+            @Nullable JobID jobID,
+            @Nullable JobStatus jobStatus,
+            Configuration configuration,
+            MetricGroup metricGroup,
+            SupplierWithException<RestClusterClient<String>, Exception> restClientSupplier) {
+        this(null, jobKey, jobID, jobStatus, configuration, metricGroup, restClientSupplier);
+    }
+
+    public JobAutoScalerContext(
+            @Nullable String jobName,
+            KEY jobKey,
+            @Nullable JobID jobID,
+            @Nullable JobStatus jobStatus,
+            Configuration configuration,
+            MetricGroup metricGroup,
+            SupplierWithException<RestClusterClient<String>, Exception> restClientSupplier) {
+        this.jobName = jobName;
+        this.jobKey = jobKey;
+        this.jobID = jobID;
+        this.jobStatus = jobStatus;
+        this.configuration = configuration;
+        this.metricGroup = metricGroup;
+        this.restClientSupplier = restClientSupplier;
+    }
 
     /** Retrieve the currently configured TaskManager CPU. */
     public Optional<Double> getTaskManagerCpu() {

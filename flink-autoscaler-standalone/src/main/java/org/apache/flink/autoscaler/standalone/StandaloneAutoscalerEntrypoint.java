@@ -36,18 +36,20 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.highavailability.nonha.standalone.StandaloneClientHAServices;
+import org.apache.flink.util.Preconditions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ObjectInputFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static org.apache.flink.autoscaler.config.AutoScalerOptions.FLINK_CLIENT_TIMEOUT;
 import static org.apache.flink.autoscaler.standalone.config.AutoscalerStandaloneOptions.FETCHER_FLINK_CLUSTER_HOST;
 import static org.apache.flink.autoscaler.standalone.config.AutoscalerStandaloneOptions.FETCHER_FLINK_CLUSTER_PORT;
+import static org.apache.flink.autoscaler.standalone.config.AutoscalerStandaloneOptions.FLINK_JOB_NAME;
 
 /** The entrypoint of the standalone autoscaler. */
 @Experimental
@@ -62,9 +64,19 @@ public class StandaloneAutoscalerEntrypoint {
         LOG.info("The standalone autoscaler is started, configuration: {}", conf);
 
         // Get configManager conf
+        List<String> listenerJobsNames = conf.get(ConfigManagerOptions.CONFIG_MANAGER_LISTENER_JOBS_NAMES);
         List<String> listenerHosts = conf.get(ConfigManagerOptions.CONFIG_MANAGER_LISTENER_JOB_HOSTS);
         List<String> ports = conf.get(ConfigManagerOptions.CONFIG_MANAGER_LISTENER_JOB_PORTS);
         List<String> urlPrefixes = conf.get(ConfigManagerOptions.CONFIG_MANAGER_URL_PREFIXES);
+        Preconditions.checkArgument(
+                listenerJobsNames.isEmpty() || listenerJobsNames.size() == listenerHosts.size(),
+                 "The number of listener job names must match the number of listener job hosts.");
+        Preconditions.checkArgument(listenerHosts.size() == ports.size(),
+                "The number of listener job hosts must match the number of listener job ports.");
+        Preconditions.checkArgument(
+                urlPrefixes.isEmpty() || listenerHosts.size() == urlPrefixes.size(),
+                "The number of listener job hosts must match the number of URL prefixes.");
+
         var numListenerJobs = listenerHosts.size();
         List<Configuration> configs = new ArrayList<>();
 
@@ -79,16 +91,21 @@ public class StandaloneAutoscalerEntrypoint {
             }
             Configuration jobConf = new Configuration(conf);
             // remove all configManager related options
+            jobConf.removeConfig(ConfigManagerOptions.CONFIG_MANAGER_LISTENER_JOBS_NAMES);
             jobConf.removeConfig(ConfigManagerOptions.CONFIG_MANAGER_LISTENER_JOB_HOSTS);
             jobConf.removeConfig(ConfigManagerOptions.CONFIG_MANAGER_LISTENER_JOB_PORTS);
             jobConf.removeConfig(ConfigManagerOptions.CONFIG_MANAGER_URL_PREFIXES);
+
+            if (!listenerJobsNames.isEmpty()) {
+                jobConf.set(FLINK_JOB_NAME, listenerJobsNames.get(i));
+            }
             jobConf.set(FETCHER_FLINK_CLUSTER_HOST, host);
             jobConf.set(FETCHER_FLINK_CLUSTER_PORT, Integer.parseInt(port));
             jobConf.setString("rest.url-prefix", urlPrefix);
             jobListFetchers.add(createJobListFetcher(jobConf));
             configs.add(jobConf);
         }
-        LOG.info("All config: {}", configs);
+        LOG.info("Listen {} flink jobs,  All config: {}", jobListFetchers.size(), configs);
 
         // Initialize JobListFetcher and JobAutoScaler.
 

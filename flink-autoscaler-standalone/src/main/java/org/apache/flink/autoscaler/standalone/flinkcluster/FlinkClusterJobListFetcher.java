@@ -20,6 +20,7 @@ package org.apache.flink.autoscaler.standalone.flinkcluster;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.autoscaler.JobAutoScalerContext;
 import org.apache.flink.autoscaler.standalone.JobListFetcher;
+import org.apache.flink.autoscaler.standalone.config.AutoscalerStandaloneOptions;
 import org.apache.flink.autoscaler.utils.JobStatusUtils;
 import org.apache.flink.client.program.rest.RestClusterClient;
 import org.apache.flink.configuration.Configuration;
@@ -85,8 +86,14 @@ public class FlinkClusterJobListFetcher
             throws Exception {
         var jobId = jobStatusMessage.getJobId();
         var conf = getConfiguration(baseConf, restClusterClient, jobId);
+        var jobName =
+                baseConf
+                        .getOptional(AutoscalerStandaloneOptions.FLINK_JOB_NAME)
+                        .orElse(jobStatusMessage.getJobName());
+
 
         return new JobAutoScalerContext<>(
+                jobName,
                 jobId,
                 jobId,
                 jobStatusMessage.getJobState(),

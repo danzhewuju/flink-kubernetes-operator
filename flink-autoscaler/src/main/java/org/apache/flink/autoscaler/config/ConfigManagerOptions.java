@@ -32,6 +32,15 @@ import java.util.List;
 public class ConfigManagerOptions {
 
     public static final String CONFIG_MANAGER = "config.manager.";
+
+    public static final ConfigOption<List<String>> CONFIG_MANAGER_LISTENER_JOBS_NAMES =
+            autoScalerConfig("listener.jobs.names")
+                    .stringType()
+                    .asList()
+                    .defaultValues()
+                    .withDescription("List of jobs to listen for configuration changes."
+                            + " Format: jobA,jobB,...");
+
     public static final ConfigOption<List<String>> CONFIG_MANAGER_LISTENER_JOB_HOSTS =
             autoScalerConfig("listener.jobs.hosts")
                     .stringType()
