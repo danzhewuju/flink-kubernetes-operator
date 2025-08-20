@@ -22,7 +22,6 @@ import org.apache.flink.autoscaler.JobAutoScaler;
 import org.apache.flink.autoscaler.JobAutoScalerContext;
 import org.apache.flink.autoscaler.event.AutoScalerEventHandler;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.UnmodifiableConfiguration;
 import org.apache.flink.util.concurrent.ExecutorThreadFactory;
 
 import org.apache.flink.shaded.guava31.com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -35,6 +34,7 @@ import javax.annotation.Nonnull;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -62,12 +62,12 @@ public class StandaloneAutoscalerExecutor<KEY, Context extends JobAutoScalerCont
     @VisibleForTesting protected static final String AUTOSCALER_ERROR = "AutoscalerError";
 
     private final Duration scalingInterval;
-    private final JobListFetcher<KEY, Context> jobListFetcher;
+    private final List<JobListFetcher<KEY, Context>> jobListFetchers;
     private final AutoScalerEventHandler<KEY, Context> eventHandler;
     private final JobAutoScaler<KEY, Context> autoScaler;
     private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorService scalingThreadPool;
-    private final UnmodifiableConfiguration baseConf;
+    private final List<Configuration> baseConfigs;
 
     /**
      * Maintain a set of job keys that during scaling, it should be accessed at {@link
@@ -81,13 +81,22 @@ public class StandaloneAutoscalerExecutor<KEY, Context extends JobAutoScalerCont
      */
     private Map<KEY, Context> lastScaling;
 
+
     public StandaloneAutoscalerExecutor(
             @Nonnull Configuration conf,
             @Nonnull JobListFetcher<KEY, Context> jobListFetcher,
             @Nonnull AutoScalerEventHandler<KEY, Context> eventHandler,
             @Nonnull JobAutoScaler<KEY, Context> autoScaler) {
-        this.scalingInterval = conf.get(CONTROL_LOOP_INTERVAL);
-        this.jobListFetcher = jobListFetcher;
+        this(List.of(conf), Collections.singletonList(jobListFetcher), eventHandler, autoScaler);
+    }
+
+    public StandaloneAutoscalerExecutor(
+            @Nonnull List<Configuration> confs,
+            @Nonnull List<JobListFetcher<KEY, Context>> jobListFetchers,
+            @Nonnull AutoScalerEventHandler<KEY, Context> eventHandler,
+            @Nonnull JobAutoScaler<KEY, Context> autoScaler) {
+        this.scalingInterval = confs.get(0).get(CONTROL_LOOP_INTERVAL);
+        this.jobListFetchers = jobListFetchers;
         this.eventHandler = eventHandler;
         this.autoScaler = autoScaler;
         this.scheduledExecutorService =
@@ -97,12 +106,12 @@ public class StandaloneAutoscalerExecutor<KEY, Context extends JobAutoScalerCont
                                 .setDaemon(false)
                                 .build());
 
-        int parallelism = conf.get(CONTROL_LOOP_PARALLELISM);
+        int parallelism = confs.get(0).get(CONTROL_LOOP_PARALLELISM);
         this.scalingThreadPool =
                 Executors.newFixedThreadPool(
                         parallelism, new ExecutorThreadFactory("autoscaler-standalone-scaling"));
         this.scalingJobKeys = new HashSet<>();
-        this.baseConf = new UnmodifiableConfiguration(conf);
+        this.baseConfigs = confs;
     }
 
     public void start() {
@@ -123,10 +132,16 @@ public class StandaloneAutoscalerExecutor<KEY, Context extends JobAutoScalerCont
      */
     @VisibleForTesting
     protected List<CompletableFuture<Void>> scaling() {
-        LOG.info("Standalone autoscaler starts scaling.");
-        Collection<Context> jobList;
+        LOG.info("Standalone autoscaler starts scaling. scaling job nums: {}", jobListFetchers.size());
+        Collection<Context> jobList = new ArrayList<>();
         try {
-            jobList = jobListFetcher.fetch(baseConf);
+            for (JobListFetcher<KEY, Context> jobListFetcher : jobListFetchers) {
+                if (jobListFetcher == null) {
+                    LOG.warn("JobListFetcher is null, skipping this fetcher.");
+                    continue;
+                }
+                jobList.addAll(jobListFetcher.fetch(baseConfigs.get(jobListFetchers.indexOf(jobListFetcher))));
+            }
         } catch (Throwable e) {
             LOG.error("Error while fetch job list.", e);
             return Collections.emptyList();

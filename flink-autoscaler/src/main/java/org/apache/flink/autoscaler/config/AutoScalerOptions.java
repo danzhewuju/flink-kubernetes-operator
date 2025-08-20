@@ -47,14 +47,14 @@ public class AutoScalerOptions {
     public static final ConfigOption<Boolean> AUTOSCALER_ENABLED =
             autoScalerConfig("enabled")
                     .booleanType()
-                    .defaultValue(false)
+                    .defaultValue(true)
                     .withFallbackKeys(oldOperatorConfigKey("enabled"))
                     .withDescription("Enable job autoscaler module.");
 
     public static final ConfigOption<Boolean> SCALING_ENABLED =
             autoScalerConfig("scaling.enabled")
                     .booleanType()
-                    .defaultValue(true)
+                    .defaultValue(false)
                     .withFallbackKeys(oldOperatorConfigKey("scaling.enabled"))
                     .withDescription(
                             "Enable vertex scaling execution by the autoscaler. If disabled, the autoscaler will only collect metrics and evaluate the suggested parallelism for each vertex but will not upgrade the jobs.");
@@ -146,7 +146,7 @@ public class AutoScalerOptions {
     public static final ConfigOption<Integer> VERTEX_MAX_PARALLELISM =
             autoScalerConfig("vertex.max-parallelism")
                     .intType()
-                    .defaultValue(200)
+                    .defaultValue(1024)
                     .withFallbackKeys(oldOperatorConfigKey("vertex.max-parallelism"))
                     .withDescription(
                             "The maximum parallelism the autoscaler can use. Note that this limit will be ignored if it is higher than the max parallelism configured in the Flink config or directly on each operator.");
@@ -351,7 +351,7 @@ public class AutoScalerOptions {
     public static final ConfigOption<Duration> FLINK_CLIENT_TIMEOUT =
             autoScalerConfig("flink.rest-client.timeout")
                     .durationType()
-                    .defaultValue(Duration.ofSeconds(10))
+                    .defaultValue(Duration.ofSeconds(100))
                     .withFallbackKeys(oldOperatorConfigKey("flink.rest-client.timeout"))
                     .withDescription("The timeout for waiting the flink rest client to return.");
 

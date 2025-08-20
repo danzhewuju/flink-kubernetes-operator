@@ -55,7 +55,7 @@ public class FlinkClusterJobListFetcher
 
     @Override
     public Collection<JobAutoScalerContext<JobID>> fetch(Configuration baseConf) throws Exception {
-        try (var restClusterClient = restClientGetter.apply(new Configuration())) {
+        try (var restClusterClient = restClientGetter.apply(baseConf)) {
             return restClusterClient
                     .sendRequest(
                             JobsOverviewHeaders.getInstance(),
